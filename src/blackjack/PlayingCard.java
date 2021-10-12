@@ -26,6 +26,11 @@ public class PlayingCard {
         this.rank = r;
         this.suit = s;
     }
+    
+    public PlayingCard(PlayingCard form) {
+        this.rank = form.rank;
+        this.suit = form.suit;
+    }
 
     // Getters
     public final String getRank() {
@@ -57,4 +62,15 @@ public class PlayingCard {
          */
         return this.rank + " of " + this.suit;
     }
+    
+    public final boolean equals(PlayingCard that) {
+        return this.suit.equals(that.suit) && this.rank.equals(that.rank);
+    }
+    
+    @Override
+    public final PlayingCard clone() {
+        return new PlayingCard(this.rank, this.suit);
+    }
+    
+    
 }

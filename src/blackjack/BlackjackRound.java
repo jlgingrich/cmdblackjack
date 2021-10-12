@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import terminal_io.TerminalIO;
+import java.util.function.Function;
 
 /**
  *
@@ -54,9 +56,9 @@ public class BlackjackRound {
             }
         }
         while (!roundOver) {
-            TerminalBuffer.addLine("Your hand: " + playerHand);
-            TerminalBuffer.addLine("Dealer's hand: [" + dealerHand.get(0) + ", ? of ?]");
-            TerminalBuffer.addLine("");
+            TerminalIO.appendLine("Your hand: " + playerHand);
+            TerminalIO.appendLine("Dealer's hand: [" + dealerHand.get(0) + ", ? of ?]");
+            TerminalIO.appendLine("");
             askForMove();
             playerHandValue = getHandValue(playerHand);
             if (playerHandValue > 21) { // CATCH ALL GAME OVER CONDITIONS
@@ -81,37 +83,37 @@ public class BlackjackRound {
                 }
             }
         }      
-        TerminalBuffer.addLine("Your hand: " + playerHand);
-        TerminalBuffer.addLine("Dealer's hand: " + dealerHand);
-        TerminalBuffer.addLine("");
+        TerminalIO.appendLine("Your hand: " + playerHand);
+        TerminalIO.appendLine("Dealer's hand: " + dealerHand);
+        TerminalIO.appendLine("");
         switch (roundOverReason) {
             
             case "win": // If you win, you gain your bet
-                TerminalBuffer.addLine("You beat the dealer! You won $" + currentBet + "!");
+                TerminalIO.appendLine("You beat the dealer! You won $" + currentBet + "!");
                 this.winnings = currentBet;
                 break;
             case "dbust": // If the dealer busts, you gain your bet
-                TerminalBuffer.addLine("The dealer bust! You won $" + currentBet + "!");
+                TerminalIO.appendLine("The dealer bust! You won $" + currentBet + "!");
                 this.winnings = currentBet;
                 break;
             case "blackjack": // If you get an uncontested blackjack, you gain your bet matched 3:2
-                TerminalBuffer.addLine("You got a Blackjack! You won $" + (int) (currentBet * 1.5) + "!");
+                TerminalIO.appendLine("You got a Blackjack! You won $" + (int) (currentBet * 1.5) + "!");
                 this.winnings = (int) (currentBet * 1.5);
                 break;
             case "push": // If you push, you keep your bet
-                TerminalBuffer.addLine("You pushed. You didn't win anything, but you didn't lose your bet either.");
+                TerminalIO.appendLine("You pushed. You didn't win anything, but you didn't lose your bet either.");
                 this.winnings = 0;
                 break;
             case "bust": // If you bust, you lose your bet
-                TerminalBuffer.addLine("You bust. You lost $" + currentBet + ".");
+                TerminalIO.appendLine("You bust. You lost $" + currentBet + ".");
                 this.winnings = -currentBet;
                 break;
             case "loss": // If you lose, you lose your bet
-                TerminalBuffer.addLine("You got beaten by the dealer. You lost $" + currentBet + ".");
+                TerminalIO.appendLine("You got beaten by the dealer. You lost $" + currentBet + ".");
                 this.winnings = -currentBet;
                 break;
             case "surrender": // If you surrender, you lose half your bet
-                TerminalBuffer.addLine("You surrendered. You lost $" + (int) (currentBet/2.0) + ".");
+                TerminalIO.appendLine("You surrendered. You lost $" + (int) (currentBet/2.0) + ".");
                 this.winnings = -(int) (currentBet/2.0);
                 break;
             default: throw(new AssertionError("There should always be a reason that the round is over if its over; check implementation."));
@@ -155,17 +157,11 @@ public class BlackjackRound {
             availiableMoves.remove("surrender");
         }
         
-        String move;
-        TerminalBuffer.addLine("Which move would you like to take?: " + availiableMoves);
-        do {
-            TerminalBuffer.renderBuffer();
-            move = TerminalBuffer.KEYBOARD.nextLine().trim();
-        } while (!availiableMoves.contains(move));
-        
+        String move = TerminalIO.getResponse("Which move would you like to take?: " + availiableMoves, availiableMoves);
         switch (move) {
             case "hit": // Adds another card and continues the round
                 playerHand.add(drawTopCard());
-                TerminalBuffer.addLine("You drew a " + playerHand.get(playerHand.size() - 1));
+                TerminalIO.appendLine("You drew a " + playerHand.get(playerHand.size() - 1));
                 break;
             case "stand": // Ends the round after the dealer draws
                 roundOver = true;
@@ -183,7 +179,7 @@ public class BlackjackRound {
                 break;
             default: throw(new AssertionError("Failed to correctly verify move as legal; check implementation."));
         }
-        TerminalBuffer.empty();
+        TerminalIO.clear();
     }
     
     private static int getHandValue(List<PlayingCard> hand) {
@@ -206,19 +202,17 @@ public class BlackjackRound {
         /** 
          * Asks the user how much they'd like to bet for the coming round
          */
-        int betAmount;
-        TerminalBuffer.addLine("Out of $" + currentMoney + ", how much would you like to bet?");
-        TerminalBuffer.addText("$");
-        do {
-            TerminalBuffer.renderBuffer();
+        Function<String, Boolean> validIntStr = s -> {
             try {
-                betAmount = Integer.parseInt(TerminalBuffer.KEYBOARD.nextLine().trim());
+                int i = Integer.parseInt(s);
+                return (0 < i && i <= currentMoney);
             } catch (NumberFormatException e) {
-                betAmount = 0; // This will force it to ask again, since 0 is invalid
+                return false;
             }
-        } while (betAmount < 1 || betAmount > currentMoney);
+        };
+        int betAmount = Integer.parseInt(TerminalIO.getResponse("Out of $" + currentMoney + ", how much would you like to bet?", validIntStr));
         currentBet = betAmount;
         currentMoney -= betAmount;
-        TerminalBuffer.empty();
+        TerminalIO.clear();
     }
 }

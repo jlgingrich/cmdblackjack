@@ -2,7 +2,7 @@ package blackjack;
 
 import java.util.Arrays;
 import java.util.List;
-
+import terminal_io.TerminalIO;
 /**
  *
  * @author johnl
@@ -21,12 +21,12 @@ public class BlackjackGame {
         public BlackjackGame() { // When called, starts the game
             
             currentMoney = INITIAL_MONEY;
-            TerminalBuffer.addLine("BLACKJACK - An Object-Oriented command-line game written in Java by Liam Gingrich");
-            TerminalBuffer.renderConfirm();
+            TerminalIO.appendLine("BLACKJACK - An Object-Oriented command-line game written in Java by Liam Gingrich");
+            TerminalIO.getContinue();
             do {
                 BlackjackRound lastRound = new BlackjackRound(N, currentMoney);
                 currentMoney += lastRound.winnings; // Updates the running money count with the results of the last round
-                TerminalBuffer.renderConfirm();
+                TerminalIO.getContinue();
                 currentRound++;
                 if (currentMoney == 0) { // CATCH ALL GAME OVER CONDITIONS
                     gameOver = true;
@@ -37,30 +37,25 @@ public class BlackjackGame {
             } while (!gameOver);
             switch (gameOverReason) {
                 case "lost":
-                    TerminalBuffer.addLine("Game Over: you lost all of your after round " + currentRound + " and left broke.");
+                    TerminalIO.appendLine("Game Over: you lost all of your money after round " + currentRound + " and left broke.");
                     break;
                 case "retired":
-                    TerminalBuffer.addLine("Game Over: you retired after round " + currentRound + " and left with $" + currentMoney + "!");
+                    TerminalIO.appendLine("Game Over: you retired after round " + currentRound + " and left with $" + currentMoney + "!");
                     break;
                 default: throw(new AssertionError("Game should only end once out of money or retired; check implementation."));
             }
-            TerminalBuffer.renderConfirm();
+            TerminalIO.getContinue();
         }
         
         private void askToContinue() {
             /** 
              * Asks the user if they'd like to continue or end the game
              */
-            String command;
-            TerminalBuffer.addLine("What would you like to do?: " + VALID_COMMANDS);
-            do {
-                TerminalBuffer.renderBuffer();
-                command = TerminalBuffer.KEYBOARD.nextLine().trim();
-            } while (!VALID_COMMANDS.contains(command));
+            String command = TerminalIO.getResponse("What would you like to do?:" + VALID_COMMANDS, VALID_COMMANDS);
             if (command.equals("retire")) {
                 gameOver = true;
                 gameOverReason = "retired";
             }
-            TerminalBuffer.empty();
+            TerminalIO.clear();
         }
     }
